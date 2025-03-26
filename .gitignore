@@ -1,2 +1,4 @@
 *.http
 key.json
+client.config
+.env
