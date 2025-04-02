@@ -1,18 +1,21 @@
 import { google } from "googleapis";
 import { GoogleAuth } from "google-auth-library";
 
-function getClient() {
-  const auth = new GoogleAuth({
-    keyFile: process.env.GOOGLE_CREDENTIALS,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
-
-  return auth;
-}
+let auth: GoogleAuth;
 
 export class SheetsService {
+  static getClient() {
+    if (!auth) {
+      auth = new GoogleAuth({
+        keyFile: process.env.GOOGLE_CREDENTIALS,
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+      });
+    }
+    return auth;
+  }
+
   static async getSpreadsheetData(spreadsheetId: string, range: string) {
-    const auth = getClient();
+    const auth = this.getClient();
     const sheets = google.sheets({ version: "v4", auth: auth });
 
     const response = await sheets.spreadsheets.values.get({
@@ -28,7 +31,7 @@ export class SheetsService {
     range: string,
     values: any[][]
   ) {
-    const auth = getClient();
+    const auth = this.getClient();
     const sheets = google.sheets({ version: "v4", auth: auth });
 
     const response = await sheets.spreadsheets.values.update({
