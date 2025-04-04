@@ -1,7 +1,19 @@
-import { loadConfig } from "../utils/configParser";
+import fs from "fs";
 
-const config = loadConfig("./.config");
+export class ConfigSingleton {
+  private static config: any;
 
-export function getConfig() {
-  return config;
+  private constructor() {}
+
+  static getConfig(): any {
+    if (!ConfigSingleton.config) {
+      try {
+        const rawData = fs.readFileSync("./.config", "utf-8");
+        ConfigSingleton.config = JSON.parse(rawData);
+      } catch (error: any) {
+        throw new Error(`Erro ao carregar configurações: ${error.message}`);
+      }
+    }
+    return ConfigSingleton.config;
+  }
 }

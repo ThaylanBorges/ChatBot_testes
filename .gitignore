@@ -1,4 +1,4 @@
 *.http
 key.json
-client.config
 .env
+*.config

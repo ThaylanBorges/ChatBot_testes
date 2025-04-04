@@ -1,9 +1,9 @@
 import { Router } from "express";
 import sheetsRouter from "./sheetsRouter";
-import { getConfig } from "../utils/configLoader";
+import { ConfigSingleton } from "../utils/configLoader";
 
 const router = Router();
-const config = getConfig();
+const config = ConfigSingleton.getConfig();
 
 switch (config.armazenamento) {
   case "planilha":
@@ -11,6 +11,9 @@ switch (config.armazenamento) {
     break;
   case "banco_dados":
     console.log("Banco de dados");
+    break;
+  default:
+    console.error("Armazenamento desconhecido:", config.armazenamento);
     break;
 }
 

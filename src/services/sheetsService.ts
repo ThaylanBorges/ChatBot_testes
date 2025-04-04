@@ -1,42 +1,40 @@
 import { google } from "googleapis";
-import { GoogleAuth } from "google-auth-library";
-
-let auth: GoogleAuth;
+import { AuthSingleton } from "../utils/clientGoogle";
 
 export class SheetsService {
-  static getClient() {
-    if (!auth) {
-      auth = new GoogleAuth({
-        keyFile: process.env.GOOGLE_CREDENTIALS,
-        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-      });
-    }
-    return auth;
-  }
+  getNextAvailableRow = async (spreadsheetId: string) => {
+    const auth = AuthSingleton.getInstance();
+    const sheets = google.sheets({ version: "v4", auth: auth });
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "A1:A",
+    });
 
-  static async getSpreadsheetData(spreadsheetId: string, range: string) {
-    const auth = this.getClient();
+    const lastRow = response.data.values ? response.data.values.length + 1 : 1;
+    return lastRow;
+  };
+
+  getSpreadsheetData = async (spreadsheetId: string) => {
+    const auth = AuthSingleton.getInstance();
     const sheets = google.sheets({ version: "v4", auth: auth });
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range,
+      range: "A1:Z",
     });
 
     return response.data.values;
-  }
+  };
 
-  static async addDataSheets(
-    spreadsheetId: string,
-    range: string,
-    values: any[][]
-  ) {
-    const auth = this.getClient();
+  addDataSheets = async (spreadsheetId: string, values: any[][]) => {
+    const auth = AuthSingleton.getInstance();
     const sheets = google.sheets({ version: "v4", auth: auth });
+    const nextRow = await this.getNextAvailableRow(spreadsheetId);
+    const finalRow = nextRow + values.length - 1;
 
-    const response = await sheets.spreadsheets.values.update({
+    const response = await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range,
+      range: `A${nextRow}:Z${finalRow}`,
       valueInputOption: "RAW",
       requestBody: {
         values: values,
@@ -44,5 +42,5 @@ export class SheetsService {
     });
 
     return response.data;
-  }
+  };
 }
