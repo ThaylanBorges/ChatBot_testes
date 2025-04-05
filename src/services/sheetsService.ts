@@ -2,7 +2,7 @@ import { google } from "googleapis";
 import { AuthSingleton } from "../utils/clientGoogle";
 
 export class SheetsService {
-  getNextAvailableRow = async (spreadsheetId: string) => {
+  static async getNextAvailableRow(spreadsheetId: string) {
     const auth = AuthSingleton.getInstance();
     const sheets = google.sheets({ version: "v4", auth: auth });
     const response = await sheets.spreadsheets.values.get({
@@ -12,9 +12,9 @@ export class SheetsService {
 
     const lastRow = response.data.values ? response.data.values.length + 1 : 1;
     return lastRow;
-  };
+  }
 
-  getSpreadsheetData = async (spreadsheetId: string) => {
+  static async getSpreadsheetData(spreadsheetId: string) {
     const auth = AuthSingleton.getInstance();
     const sheets = google.sheets({ version: "v4", auth: auth });
 
@@ -24,9 +24,9 @@ export class SheetsService {
     });
 
     return response.data.values;
-  };
+  }
 
-  addDataSheets = async (spreadsheetId: string, values: any[][]) => {
+  static async addDataSheets(spreadsheetId: string, values: any[][]) {
     const auth = AuthSingleton.getInstance();
     const sheets = google.sheets({ version: "v4", auth: auth });
     const nextRow = await this.getNextAvailableRow(spreadsheetId);
@@ -42,5 +42,5 @@ export class SheetsService {
     });
 
     return response.data;
-  };
+  }
 }
