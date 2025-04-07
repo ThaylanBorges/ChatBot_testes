@@ -16,4 +16,9 @@ export class ConfigSingleton {
     }
     return ConfigSingleton.config;
   }
+
+  static getPage(page: string) {
+    const config = ConfigSingleton.config;
+    return config.planilha.abas[page] || null;
+  }
 }

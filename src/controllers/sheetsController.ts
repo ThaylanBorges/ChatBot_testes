@@ -14,13 +14,38 @@ export class SheetsController {
   }
 
   static async addRows(req: Request, res: Response) {
-    const { values } = req.body;
+    const { page, values } = req.body;
+
+    const pageConfig = ConfigSingleton.getPage(page);
+
+    if (!pageConfig) {
+      res.status(500).json({ error: "Tipo inválido!" });
+    }
+
     try {
       const config = ConfigSingleton.getConfig();
+
+      const dynamicRange = await SheetsService.dynamicRange(
+        config.planilha.id,
+        pageConfig
+      );
+
       const result = await SheetsService.addDataSheets(
         config.planilha.id,
+        dynamicRange,
         values
       );
+
+      res.status(200).json({ result });
+    } catch (error: any) {
+      res.status(500).json({ error: `Erro no servidor. ${error.message}` });
+    }
+  }
+
+  static async sumValor(req: Request, res: Response) {
+    try {
+      const config = ConfigSingleton.getConfig();
+      const result = await SheetsService.sumValues(config.planilha.id);
       res.status(200).json({ result });
     } catch (error: any) {
       res.status(500).json({ error: `Erro no servidor. ${error.message}` });
