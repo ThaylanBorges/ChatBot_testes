@@ -1,4 +1,5 @@
 import { GoogleAuth } from "google-auth-library";
+import { google } from "googleapis";
 
 export class AuthSingleton {
   private static instance: GoogleAuth;
@@ -18,5 +19,10 @@ export class AuthSingleton {
     }
 
     return AuthSingleton.instance;
+  }
+
+  static getSheetsClient() {
+    const auth = AuthSingleton.getInstance();
+    return google.sheets({ version: "v4", auth });
   }
 }

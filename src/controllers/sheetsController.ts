@@ -4,9 +4,20 @@ import { Request, Response } from "express";
 
 export class SheetsController {
   static async getRows(req: Request, res: Response) {
+    const { page } = req.body;
+
+    const pageConfig = ConfigSingleton.getPage(page);
+    if (!pageConfig) {
+      res.status(500).json({ error: "Configuração da página inválida!" });
+      return;
+    }
+
     try {
       const config = ConfigSingleton.getConfig();
-      const data = await SheetsService.getSpreadsheetData(config.planilha.id);
+      const data = await SheetsService.getSpreadsheetData(
+        config.planilha.id,
+        pageConfig
+      );
       res.status(200).json({ data });
     } catch (error: any) {
       res.status(500).json({ error: `Erro no servidor. ${error.message}` });
@@ -19,7 +30,8 @@ export class SheetsController {
     const pageConfig = ConfigSingleton.getPage(page);
 
     if (!pageConfig) {
-      res.status(500).json({ error: "Tipo inválido!" });
+      res.status(500).json({ error: "Configuração da página inválida!" });
+      return;
     }
 
     try {
@@ -43,9 +55,21 @@ export class SheetsController {
   }
 
   static async sumValor(req: Request, res: Response) {
+    const { page } = req.body;
+
+    const pageConfig = ConfigSingleton.getPage(page);
+
+    if (!pageConfig) {
+      res.status(500).json({ error: "Configuração da página inválida!" });
+      return;
+    }
+
     try {
       const config = ConfigSingleton.getConfig();
-      const result = await SheetsService.sumValues(config.planilha.id);
+      const result = await SheetsService.sumValues(
+        config.planilha.id,
+        pageConfig
+      );
       res.status(200).json({ result });
     } catch (error: any) {
       res.status(500).json({ error: `Erro no servidor. ${error.message}` });

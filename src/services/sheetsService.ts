@@ -1,14 +1,12 @@
-import { google } from "googleapis";
 import { AuthSingleton } from "../utils/clientGoogle";
 
 export class SheetsService {
-  static async getSpreadsheetData(spreadsheetId: string) {
-    const auth = AuthSingleton.getInstance();
-    const sheets = google.sheets({ version: "v4", auth });
+  static async getSpreadsheetData(spreadsheetId: string, page: any) {
+    const sheets = AuthSingleton.getSheetsClient();
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "A1:Z",
+      range: `${page.nome}!A:Z`,
     });
 
     return response.data.values;
@@ -19,8 +17,7 @@ export class SheetsService {
     dynamicRange: string,
     values: any[][]
   ) {
-    const auth = AuthSingleton.getInstance();
-    const sheets = google.sheets({ version: "v4", auth });
+    const sheets = AuthSingleton.getSheetsClient();
 
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId,
@@ -34,13 +31,12 @@ export class SheetsService {
     return response.data;
   }
 
-  static async sumValues(spreadsheetId: string) {
-    const auth = AuthSingleton.getInstance();
-    const sheets = google.sheets({ version: "v4", auth });
+  static async sumValues(spreadsheetId: string, page: any) {
+    const sheets = AuthSingleton.getSheetsClient();
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "A:A",
+      range: `${page.nome}!${page.coluna_soma}:${page.coluna_soma}`,
     });
 
     const values = response.data.values || [];
@@ -52,8 +48,7 @@ export class SheetsService {
   }
 
   static async dynamicRange(spreadsheetId: string, page: any) {
-    const auth = AuthSingleton.getInstance();
-    const sheets = google.sheets({ version: "v4", auth });
+    const sheets = AuthSingleton.getSheetsClient();
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
