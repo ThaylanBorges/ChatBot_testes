@@ -1,76 +1,75 @@
 import { ConfigSingleton } from "../utils/configLoader";
+import { Teste } from "../utils/teste";
 import { SheetsService } from "./../services/sheetsService";
 import { Request, Response } from "express";
 
 export class SheetsController {
   static async getRows(req: Request, res: Response) {
-    const { page } = req.body;
-
-    const pageConfig = ConfigSingleton.getPage(page);
-    if (!pageConfig) {
-      res.status(500).json({ error: "Configuração da página inválida!" });
-      return;
-    }
+    const { pageName, type } = req.body;
+    const columns = ConfigSingleton.getColuns(type);
 
     try {
       const config = ConfigSingleton.getConfig();
       const data = await SheetsService.getSpreadsheetData(
         config.planilha.id,
-        pageConfig
+        pageName,
+        columns
       );
+
       res.status(200).json({ data });
     } catch (error: any) {
       res.status(500).json({ error: `Erro no servidor. ${error.message}` });
     }
   }
 
-  static async addRows(req: Request, res: Response) {
-    const { page, values } = req.body;
-
-    const pageConfig = ConfigSingleton.getPage(page);
-
-    if (!pageConfig) {
-      res.status(500).json({ error: "Configuração da página inválida!" });
-      return;
-    }
-
-    try {
-      const config = ConfigSingleton.getConfig();
-
-      const dynamicRange = await SheetsService.dynamicRange(
-        config.planilha.id,
-        pageConfig
-      );
-
-      const result = await SheetsService.addDataSheets(
-        config.planilha.id,
-        dynamicRange,
-        values
-      );
-
-      res.status(200).json({ result });
-    } catch (error: any) {
-      res.status(500).json({ error: `Erro no servidor. ${error.message}` });
-    }
-  }
-
-  static async sumValor(req: Request, res: Response) {
-    const { page } = req.body;
-
-    const pageConfig = ConfigSingleton.getPage(page);
-
-    if (!pageConfig) {
-      res.status(500).json({ error: "Configuração da página inválida!" });
-      return;
-    }
+  static async updateRow(req: Request, res: Response) {
+    const {
+      pageName,
+      type,
+      pagador,
+      servico,
+      valor,
+      tipoPagamento,
+      tipoPlano,
+      dataVencimento,
+      status,
+      gastoServicos,
+    } = req.body;
 
     try {
       const config = ConfigSingleton.getConfig();
-      const result = await SheetsService.sumValues(
-        config.planilha.id,
-        pageConfig
-      );
-      res.status(200).json({ result });
+      const categoryConfig = config.planilha.categorias[type];
+      if (!categoryConfig) {
+        throw new Error("Categoria não encontrada no config");
+      }
+
+      const aba = pageName || ConfigSingleton.getMonthTabName();
+      const columns = categoryConfig.colunas;
+
+      if (type === "planos_alunos") {
+        await Teste.handleUpdateAluno(
+          config.planilha.id,
+          aba,
+          columns,
+          pagador,
+          servico,
+          valor,
+          tipoPagamento,
+          tipoPlano,
+          dataVencimento
+        );
+      } else {
+        await Teste.handleAddOutro(
+          config.planilha.id,
+          aba,
+          columns,
+          gastoServicos,
+          valor,
+          status
+        );
+      }
+
+      res.status(200).json({ message: "Valores atualizados com sucesso" });
     } catch (error: any) {
       res.status(500).json({ error: `Erro no servidor. ${error.message}` });
     }

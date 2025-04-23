@@ -3,7 +3,6 @@ import { Router } from "express";
 const sheetsRouter = Router();
 
 sheetsRouter.post("/", SheetsController.getRows);
-sheetsRouter.post("/add", SheetsController.addRows);
-sheetsRouter.post("/sumValues", SheetsController.sumValor);
+sheetsRouter.post("/update", SheetsController.updateRow);
 
 export default sheetsRouter;

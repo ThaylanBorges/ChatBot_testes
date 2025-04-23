@@ -1,62 +1,50 @@
 import { AuthSingleton } from "../utils/clientGoogle";
 
 export class SheetsService {
-  static async getSpreadsheetData(spreadsheetId: string, page: any) {
+  static async getSpreadsheetData(
+    spreadsheetId: string,
+    page: any,
+    coluns: any
+  ) {
     const sheets = AuthSingleton.getSheetsClient();
-
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `${page.nome}!A:Z`,
+      range: `${page}!${coluns.inicio}:${coluns.fim}`,
     });
 
     return response.data.values;
   }
 
-  static async addDataSheets(
+  static async batchUpdateCells(
     spreadsheetId: string,
-    dynamicRange: string,
-    values: any[][]
+    updates: { range: string; values: any[][] }[]
   ) {
     const sheets = AuthSingleton.getSheetsClient();
+    const request = {
+      valueInputOption: "USER_ENTERED",
+      data: updates,
+    };
 
-    const response = await sheets.spreadsheets.values.append({
+    await sheets.spreadsheets.values.batchUpdate({
       spreadsheetId,
-      range: dynamicRange,
-      valueInputOption: "RAW",
-      requestBody: {
-        values: values,
-      },
+      requestBody: request,
     });
+  }
+
+  static async addDataSheets(spreadsheetId: string, values: any, range: any) {
+    const sheets = AuthSingleton.getSheetsClient();
+
+    const request = {
+      spreadsheetId,
+      range,
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values,
+      },
+    };
+
+    const response = await sheets.spreadsheets.values.append(request);
 
     return response.data;
-  }
-
-  static async sumValues(spreadsheetId: string, page: any) {
-    const sheets = AuthSingleton.getSheetsClient();
-
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: `${page.nome}!${page.coluna_soma}:${page.coluna_soma}`,
-    });
-
-    const values = response.data.values || [];
-    const sum = values.reduce((total, row) => {
-      const value = parseFloat(row[0]);
-      return total + (isNaN(value) ? 0 : value);
-    }, 0);
-    return sum;
-  }
-
-  static async dynamicRange(spreadsheetId: string, page: any) {
-    const sheets = AuthSingleton.getSheetsClient();
-
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: `${page.nome}!A:A`,
-    });
-
-    const nextRow = response.data.values ? response.data.values.length + 1 : 2;
-
-    return `${page.nome}!${page.coluna_inicio}${nextRow}:${page.coluna_inicio}${nextRow}`;
   }
 }
