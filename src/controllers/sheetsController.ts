@@ -22,6 +22,60 @@ export class SheetsController {
     }
   }
 
+  static async addRow(req: Request, res: Response) {
+    const {
+      pageName,
+      type,
+      pagador,
+      servico,
+      valor,
+      tipoPagamento,
+      tipoPlano,
+      dataVencimento,
+      status,
+      gasto,
+    } = req.body;
+
+    try {
+      const config = ConfigSingleton.getConfig();
+      const categoryConfig = config.planilha.categorias[type];
+
+      if (!categoryConfig) {
+        throw new Error("Categoria não encontrada no config");
+      }
+
+      const aba = pageName || ConfigSingleton.getMonthTabName();
+
+      if (type === "planos_alunos") {
+        await Teste.addStudent(
+          config.planilha.id,
+          aba,
+          categoryConfig.colunas,
+          pagador,
+          servico,
+          valor,
+          tipoPagamento,
+          tipoPlano,
+          dataVencimento
+        );
+      }
+      if (type === "despesas") {
+        await Teste.addExpenses(
+          config.planilha.id,
+          aba,
+          categoryConfig.colunas,
+          gasto,
+          valor,
+          status
+        );
+      }
+
+      res.status(200).json({ message: "Valores adicionados com sucesso" });
+    } catch (error: any) {
+      res.status(500).json({ error: `Erro no servidor. ${error.message}` });
+    }
+  }
+
   static async updateRow(req: Request, res: Response) {
     const {
       pageName,
@@ -33,7 +87,7 @@ export class SheetsController {
       tipoPlano,
       dataVencimento,
       status,
-      gastoServicos,
+      gasto,
     } = req.body;
 
     try {
@@ -44,13 +98,12 @@ export class SheetsController {
       }
 
       const aba = pageName || ConfigSingleton.getMonthTabName();
-      const columns = categoryConfig.colunas;
 
       if (type === "planos_alunos") {
-        await Teste.handleUpdateAluno(
+        await Teste.updateStudent(
           config.planilha.id,
           aba,
-          columns,
+          categoryConfig.colunas,
           pagador,
           servico,
           valor,
@@ -58,12 +111,13 @@ export class SheetsController {
           tipoPlano,
           dataVencimento
         );
-      } else {
-        await Teste.handleAddOutro(
+      }
+      if (type === "despesas") {
+        await Teste.updateExpenses(
           config.planilha.id,
           aba,
-          columns,
-          gastoServicos,
+          categoryConfig.colunas,
+          gasto,
           valor,
           status
         );

@@ -4,5 +4,6 @@ const sheetsRouter = Router();
 
 sheetsRouter.post("/", SheetsController.getRows);
 sheetsRouter.post("/update", SheetsController.updateRow);
+sheetsRouter.post("/add", SheetsController.addRow);
 
 export default sheetsRouter;
