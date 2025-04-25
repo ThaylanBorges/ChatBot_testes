@@ -1,5 +1,5 @@
 import { ConfigSingleton } from "../utils/configLoader";
-import { Teste } from "../utils/teste";
+import { SpreadsheetHelper } from "../utils/spreadsheetHelper";
 import { SheetsService } from "./../services/sheetsService";
 import { Request, Response } from "express";
 
@@ -23,52 +23,27 @@ export class SheetsController {
   }
 
   static async addRow(req: Request, res: Response) {
-    const {
-      pageName,
-      type,
-      pagador,
-      servico,
-      valor,
-      tipoPagamento,
-      tipoPlano,
-      dataVencimento,
-      status,
-      gasto,
-    } = req.body;
+    const { pageName, type, ...data } = req.body;
 
     try {
       const config = ConfigSingleton.getConfig();
+
       const categoryConfig = config.planilha.categorias[type];
 
       if (!categoryConfig) {
-        throw new Error("Categoria não encontrada no config");
+        throw new Error("Categoria não encontrada");
       }
 
       const aba = pageName || ConfigSingleton.getMonthTabName();
 
-      if (type === "planos_alunos") {
-        await Teste.addStudent(
-          config.planilha.id,
-          aba,
-          categoryConfig.colunas,
-          pagador,
-          servico,
-          valor,
-          tipoPagamento,
-          tipoPlano,
-          dataVencimento
-        );
-      }
-      if (type === "despesas") {
-        await Teste.addExpenses(
-          config.planilha.id,
-          aba,
-          categoryConfig.colunas,
-          gasto,
-          valor,
-          status
-        );
-      }
+      console.log(categoryConfig);
+
+      await SpreadsheetHelper.addData(
+        config.planilha.id,
+        aba,
+        categoryConfig.colunas,
+        data
+      );
 
       res.status(200).json({ message: "Valores adicionados com sucesso" });
     } catch (error: any) {
@@ -77,51 +52,26 @@ export class SheetsController {
   }
 
   static async updateRow(req: Request, res: Response) {
-    const {
-      pageName,
-      type,
-      pagador,
-      servico,
-      valor,
-      tipoPagamento,
-      tipoPlano,
-      dataVencimento,
-      status,
-      gasto,
-    } = req.body;
+    const { pageName, type, searchValue, columnSearch, ...updateFields } =
+      req.body;
 
     try {
       const config = ConfigSingleton.getConfig();
       const categoryConfig = config.planilha.categorias[type];
+
       if (!categoryConfig) {
         throw new Error("Categoria não encontrada no config");
       }
 
       const aba = pageName || ConfigSingleton.getMonthTabName();
 
-      if (type === "planos_alunos") {
-        await Teste.updateStudent(
-          config.planilha.id,
-          aba,
-          categoryConfig.colunas,
-          pagador,
-          servico,
-          valor,
-          tipoPagamento,
-          tipoPlano,
-          dataVencimento
-        );
-      }
-      if (type === "despesas") {
-        await Teste.updateExpenses(
-          config.planilha.id,
-          aba,
-          categoryConfig.colunas,
-          gasto,
-          valor,
-          status
-        );
-      }
+      await SpreadsheetHelper.updateData(
+        config.planilha.id,
+        aba,
+        categoryConfig.colunas,
+        searchValue,
+        updateFields
+      );
 
       res.status(200).json({ message: "Valores atualizados com sucesso" });
     } catch (error: any) {
