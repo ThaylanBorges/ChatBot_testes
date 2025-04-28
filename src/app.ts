@@ -8,7 +8,7 @@ app.use(express.json());
 
 app.use("/api", router);
 
-const port = 48003;
+const port = process.env.PORT;
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}`);
 });

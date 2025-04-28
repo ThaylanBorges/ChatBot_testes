@@ -7,6 +7,7 @@ export class SheetsService {
     coluns: any
   ) {
     const sheets = AuthSingleton.getSheetsClient();
+
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: `${page}!${coluns.inicio}:${coluns.fim}`,
@@ -25,10 +26,12 @@ export class SheetsService {
       data: updates,
     };
 
-    await sheets.spreadsheets.values.batchUpdate({
+    const response = await sheets.spreadsheets.values.batchUpdate({
       spreadsheetId,
       requestBody: request,
     });
+
+    return response.data;
   }
 
   static async addDataSheets(spreadsheetId: string, values: any, range: any) {
@@ -39,7 +42,7 @@ export class SheetsService {
       range,
       valueInputOption: "USER_ENTERED",
       requestBody: {
-        values,
+        values: [values],
       },
     };
 

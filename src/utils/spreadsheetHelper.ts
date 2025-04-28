@@ -1,44 +1,6 @@
-import { SheetsService } from "../services/sheetsService";
 import { AuthSingleton } from "./clientGoogle";
-import { ConfigSingleton } from "./configLoader";
 
 export class SpreadsheetHelper {
-  static async updateData(
-    spreadsheetId: string,
-    aba: string,
-    columns: any,
-    searchValue: string,
-    updateFields: { [key: string]: any }
-  ) {
-    const rows = await SheetsService.getSpreadsheetData(
-      spreadsheetId,
-      aba,
-      columns
-    );
-
-    if (!rows || rows.length === 0) {
-      throw new Error("Nenhum dado encontrado na planilha.");
-    }
-
-    const rowIndex = rows.findIndex(
-      (row: any) => row[0] && row[0] === searchValue
-    );
-
-    if (rowIndex === -1) {
-      throw new Error("Registro não encontrado na planilha.");
-    }
-
-    const startingRow = ConfigSingleton.extractRowNumber(columns.inicio);
-    const actualRow = startingRow + rowIndex;
-
-    const updates = Object.keys(updateFields).map((field) => ({
-      range: `${aba}!${columns.campos[field]}${actualRow}`,
-      values: [[updateFields[field]]],
-    }));
-
-    await SheetsService.batchUpdateCells(spreadsheetId, updates);
-  }
-
   static async getRange(
     spreadsheetId: string,
     aba: string,
@@ -58,5 +20,41 @@ export class SpreadsheetHelper {
     const lastRow = row.length + parseInt(match[0]);
 
     return `${aba}!${firstColumm}${lastRow}:${lastColumm}${lastRow}`;
+  }
+
+  static extractRowNumber(cellRange: string) {
+    if (!cellRange || typeof cellRange !== "string") {
+      throw { status: "500", message: `Entrada inválida: ${cellRange}` };
+    }
+
+    const match = cellRange.match(/\d+/);
+
+    if (match && match.length > 0) {
+      return parseInt(match[0]);
+    }
+
+    throw {
+      status: "500",
+      message: `Nenhum número encontrado na célula: "${cellRange}". Verifique se o formato está correto.`,
+    };
+  }
+
+  static getMonthTabName(date: Date = new Date()) {
+    const month = [
+      "Janeiro",
+      "Fevereiro",
+      "Março",
+      "Abril",
+      "Maio",
+      "Junho",
+      "Julho",
+      "Agosto",
+      "Setembro",
+      "Outubro",
+      "Novembro",
+      "Dezembro",
+    ];
+
+    return month[date.getMonth()];
   }
 }
