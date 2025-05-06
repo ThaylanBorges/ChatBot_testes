@@ -1,0 +1,253 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Sheets API",
+    "version": "1.0.0",
+    "description": "API para manipular dados de uma planilha do Google Sheets com múltiplas categorias."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:48003/api",
+      "description": "Servidor local"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "GetRowsRequest": {
+        "type": "object",
+        "properties": {
+          "pageName": { "type": "string" },
+          "type": { "type": "string", "enum": ["despesas", "planos_alunos"] }
+        },
+        "required": ["pageName", "type"]
+      },
+      "DespesasAddRequest": {
+        "type": "object",
+        "properties": {
+          "pageName": { "type": "string" },
+          "type": { "type": "string", "enum": ["despesas"] },
+          "gasto": { "type": "string" },
+          "valor": { "type": "number" },
+          "status": { "type": "string" }
+        },
+        "required": ["pageName", "type", "gasto", "valor", "status"]
+      },
+      "PlanosAlunosAddRequest": {
+        "type": "object",
+        "properties": {
+          "pageName": { "type": "string" },
+          "type": { "type": "string", "enum": ["planos_alunos"] },
+          "pagador": { "type": "string" },
+          "servico": { "type": "string" },
+          "valor": { "type": "number" },
+          "tipoPagamento": { "type": "string" },
+          "tipoPlano": { "type": "string" },
+          "dataVencimento": { "type": "string" }
+        },
+        "required": [
+          "pageName",
+          "type",
+          "pagador",
+          "servico",
+          "valor",
+          "tipoPagamento",
+          "tipoPlano",
+          "dataVencimento"
+        ]
+      },
+      "DespesasUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "pageName": { "type": "string" },
+          "type": { "type": "string", "enum": ["despesas"] },
+          "searchValue": { "type": "string" },
+          "valor": { "type": "number" },
+          "status": { "type": "string" }
+        },
+        "required": ["pageName", "type", "searchValue", "valor", "status"]
+      },
+
+      "PlanosAlunosUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "pageName": { "type": "string" },
+          "type": { "type": "string", "enum": ["planos_alunos"] },
+          "searchValue": { "type": "string" },
+          "servico": { "type": "string" },
+          "valor": { "type": "number" },
+          "tipoPagamento": { "type": "string" },
+          "tipoPlano": { "type": "string" },
+          "dataVencimento": { "type": "string" }
+        },
+        "required": [
+          "pageName",
+          "type",
+          "searchValue",
+          "servico",
+          "valor",
+          "tipoPagamento",
+          "tipoPlano",
+          "dataVencimento"
+        ]
+      }
+    }
+  },
+  "paths": {
+    "/sheets": {
+      "post": {
+        "summary": "Obter dados da planilha",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetRowsRequest"
+              },
+              "examples": {
+                "Buscar Despesas": {
+                  "value": {
+                    "pageName": "Março",
+                    "type": "despesas"
+                  }
+                },
+                "Buscar Planos de Alunos": {
+                  "value": {
+                    "pageName": "Março",
+                    "type": "planos_alunos"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Dados obtidos com sucesso",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "success",
+                  "data": [
+                    {
+                      "gasto": "Luz",
+                      "valor": 250,
+                      "status": "Não pago"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sheets/add": {
+      "post": {
+        "summary": "Adicionar uma linha na planilha",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  { "$ref": "#/components/schemas/DespesasAddRequest" },
+                  { "$ref": "#/components/schemas/PlanosAlunosAddRequest" }
+                ]
+              },
+              "examples": {
+                "Adicionar Despesa": {
+                  "value": {
+                    "pageName": "Março",
+                    "type": "despesas",
+                    "gasto": "Luz",
+                    "valor": 250,
+                    "status": "Não pago"
+                  }
+                },
+                "Adicionar Plano de Aluno": {
+                  "value": {
+                    "pageName": "Março",
+                    "type": "planos_alunos",
+                    "pagador": "Thaylan",
+                    "servico": "Pilates",
+                    "valor": 150,
+                    "tipoPagamento": "Pix",
+                    "tipoPlano": "Anual",
+                    "dataVencimento": "22/05/2025"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Linha adicionada com sucesso",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "success",
+                  "message": "Nova linha adicionada na planilha."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sheets/update": {
+      "post": {
+        "summary": "Atualizar uma linha da planilha",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  { "$ref": "#/components/schemas/DespesasUpdateRequest" },
+                  { "$ref": "#/components/schemas/PlanosAlunosUpdateRequest" }
+                ]
+              },
+              "examples": {
+                "Atualizar Despesa": {
+                  "value": {
+                    "pageName": "Março",
+                    "type": "despesas",
+                    "searchValue": "Luz",
+                    "valor": 250,
+                    "status": "Pago"
+                  }
+                },
+                "Atualizar Plano do Aluno": {
+                  "value": {
+                    "pageName": "Março",
+                    "type": "planos_alunos",
+                    "searchValue": "Thaylan",
+                    "servico": "Pilates",
+                    "valor": 200,
+                    "tipoPagamento": "Pix",
+                    "tipoPlano": "Anual",
+                    "dataVencimento": "07/01/2027"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Linha atualizada com sucesso",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "success",
+                  "message": "Dados atualizados corretamente."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
