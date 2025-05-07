@@ -5,10 +5,16 @@ import { Request, Response } from "express";
 
 export class SheetsController {
   static async getRows(req: Request, res: Response) {
-    const { pageName, type } = req.body;
+    const type = req.query.type;
+    const pageName = req.params.pageName;
+
+    if (!type || typeof type !== "string") {
+      res.status(400).json({ error: "Tipo inválido." });
+      return;
+    }
 
     const config = ConfigSingleton.getConfig();
-    const categoryConfig = config.planilha.categorias[type];
+    const categoryConfig = config.planilha.categorias[type.toString()];
 
     try {
       const config = ConfigSingleton.getConfig();
@@ -89,7 +95,7 @@ export class SheetsController {
       }
 
       const rowIndex = rows.findIndex((row: any) => {
-        return row[0] && row[0] === searchValue;
+        return Object.values(row)[0] === searchValue;
       });
 
       if (rowIndex === -1) {

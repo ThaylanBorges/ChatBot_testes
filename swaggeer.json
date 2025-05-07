@@ -3,7 +3,7 @@
   "info": {
     "title": "Sheets API",
     "version": "1.0.0",
-    "description": "API para manipular dados de uma planilha do Google Sheets com múltiplas categorias."
+    "description": "API para manipular dados de uma planilha do Google Sheets."
   },
   "servers": [
     {
@@ -13,10 +13,27 @@
   ],
   "components": {
     "schemas": {
+      "PageNameEnum": {
+        "type": "string",
+        "enum": [
+          "Janeiro",
+          "Fevereiro",
+          "Março",
+          "Abril",
+          "Maio",
+          "Junho",
+          "Julho",
+          "Agosto",
+          "Setembro",
+          "Outubro",
+          "Novembro",
+          "Dezembro"
+        ]
+      },
       "GetRowsRequest": {
         "type": "object",
         "properties": {
-          "pageName": { "type": "string" },
+          "pageName": { "$ref": "#/components/schemas/PageNameEnum" },
           "type": { "type": "string", "enum": ["despesas", "planos_alunos"] }
         },
         "required": ["pageName", "type"]
@@ -24,7 +41,9 @@
       "DespesasAddRequest": {
         "type": "object",
         "properties": {
-          "pageName": { "type": "string" },
+          "pageName": {
+            "$ref": "#/components/schemas/PageNameEnum"
+          },
           "type": { "type": "string", "enum": ["despesas"] },
           "gasto": { "type": "string" },
           "valor": { "type": "number" },
@@ -35,7 +54,9 @@
       "PlanosAlunosAddRequest": {
         "type": "object",
         "properties": {
-          "pageName": { "type": "string" },
+          "pageName": {
+            "$ref": "#/components/schemas/PageNameEnum"
+          },
           "type": { "type": "string", "enum": ["planos_alunos"] },
           "pagador": { "type": "string" },
           "servico": { "type": "string" },
@@ -58,7 +79,9 @@
       "DespesasUpdateRequest": {
         "type": "object",
         "properties": {
-          "pageName": { "type": "string" },
+          "pageName": {
+            "$ref": "#/components/schemas/PageNameEnum"
+          },
           "type": { "type": "string", "enum": ["despesas"] },
           "searchValue": { "type": "string" },
           "valor": { "type": "number" },
@@ -70,7 +93,9 @@
       "PlanosAlunosUpdateRequest": {
         "type": "object",
         "properties": {
-          "pageName": { "type": "string" },
+          "pageName": {
+            "$ref": "#/components/schemas/PageNameEnum"
+          },
           "type": { "type": "string", "enum": ["planos_alunos"] },
           "searchValue": { "type": "string" },
           "servico": { "type": "string" },
@@ -93,40 +118,40 @@
     }
   },
   "paths": {
-    "/sheets": {
-      "post": {
+    "/sheets/{pageName}": {
+      "get": {
         "summary": "Obter dados da planilha",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetRowsRequest"
-              },
-              "examples": {
-                "Buscar Despesas": {
-                  "value": {
-                    "pageName": "Março",
-                    "type": "despesas"
-                  }
-                },
-                "Buscar Planos de Alunos": {
-                  "value": {
-                    "pageName": "Março",
-                    "type": "planos_alunos"
-                  }
-                }
-              }
-            }
+        "tags": ["Endpoints"],
+        "description": "Retorna os dados de uma categoria específica na planilha do Google Sheets.",
+        "parameters": [
+          {
+            "name": "pageName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/PageNameEnum"
+            },
+            "description": "Nome da aba da planilha (ex: Março)"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["despesas", "planos_alunos"]
+            },
+            "style": "form",
+            "explode": false,
+            "description": "Categoria a ser filtrada na planilha"
           }
-        },
+        ],
         "responses": {
           "200": {
             "description": "Dados obtidos com sucesso",
             "content": {
               "application/json": {
                 "example": {
-                  "status": "success",
                   "data": [
                     {
                       "gasto": "Luz",
@@ -137,6 +162,12 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Erro de requisição"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
           }
         }
       }
@@ -144,6 +175,7 @@
     "/sheets/add": {
       "post": {
         "summary": "Adicionar uma linha na planilha",
+        "tags": ["Endpoints"],
         "requestBody": {
           "required": true,
           "content": {
@@ -186,8 +218,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "status": "success",
-                  "message": "Nova linha adicionada na planilha."
+                  "message": "Valores adicionados com sucesso"
                 }
               }
             }
@@ -198,6 +229,7 @@
     "/sheets/update": {
       "post": {
         "summary": "Atualizar uma linha da planilha",
+        "tags": ["Endpoints"],
         "requestBody": {
           "required": true,
           "content": {

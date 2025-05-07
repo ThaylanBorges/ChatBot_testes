@@ -9,7 +9,15 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use("/api", router);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument, {
+    swaggerOptions: {
+      tryItOutEnabled: true,
+    },
+  })
+);
 
 const port = process.env.PORT;
 app.listen(port, () => {

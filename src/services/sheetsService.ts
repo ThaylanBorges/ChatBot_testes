@@ -4,16 +4,30 @@ export class SheetsService {
   static async getSpreadsheetData(
     spreadsheetId: string,
     page: any,
-    coluns: any
+    columns: any
   ) {
     const sheets = AuthSingleton.getSheetsClient();
 
+    const { inicio, fim, campos } = columns;
+
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `${page}!${coluns.inicio}:${coluns.fim}`,
+      range: `${page}!${inicio}:${fim}`,
     });
 
-    return response.data.values;
+    const values = response.data.values ?? [];
+
+    return response.data.values!.map((row: any) => {
+      const result: any = {};
+
+      Object.keys(campos).forEach((key, index) => {
+        let value = row[index];
+
+        result[key] = value;
+      });
+
+      return result;
+    });
   }
 
   static async batchUpdateCells(
