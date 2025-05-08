@@ -1,27 +1,4 @@
-import { AuthSingleton } from "./clientGoogle";
-
 export class SpreadsheetHelper {
-  static async getRange(
-    spreadsheetId: string,
-    aba: string,
-    columns: any,
-    firstColumm: any,
-    lastColumm: any
-  ) {
-    const sheets = AuthSingleton.getSheetsClient();
-
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: `${aba}!${columns.inicio}:${columns.fim}`,
-    });
-
-    const match = columns.inicio.match(/\d+/);
-    const row = response.data.values || [];
-    const lastRow = row.length + parseInt(match[0]);
-
-    return `${aba}!${firstColumm}${lastRow}:${lastColumm}${lastRow}`;
-  }
-
   static extractRowNumber(cellRange: string) {
     if (!cellRange || typeof cellRange !== "string") {
       throw { status: "500", message: `Entrada inválida: ${cellRange}` };
@@ -56,5 +33,13 @@ export class SpreadsheetHelper {
     ];
 
     return month[date.getMonth()];
+  }
+
+  static getCategoryConfig(type: string, config: any) {
+    const category = config.planilha.categorias[type];
+    if (!category) console.log(type);
+
+    throw { status: 400, message: `Categoria "${type}" não encontrada` };
+    return category;
   }
 }

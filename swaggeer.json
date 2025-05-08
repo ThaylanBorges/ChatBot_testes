@@ -136,13 +136,11 @@
           {
             "name": "type",
             "in": "query",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string",
               "enum": ["despesas", "planos_alunos"]
             },
-            "style": "form",
-            "explode": false,
             "description": "Categoria a ser filtrada na planilha"
           }
         ],

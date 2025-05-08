@@ -14,10 +14,9 @@ export class SheetsController {
     }
 
     const config = ConfigSingleton.getConfig();
-    const categoryConfig = config.planilha.categorias[type.toString()];
+    const categoryConfig = SpreadsheetHelper.getCategoryConfig(type, config);
 
     try {
-      const config = ConfigSingleton.getConfig();
       const data = await SheetsService.getSpreadsheetData(
         config.planilha.id,
         pageName,
@@ -34,28 +33,24 @@ export class SheetsController {
 
   static async addRow(req: Request, res: Response) {
     const { pageName, type, ...data } = req.body;
-
     const config = ConfigSingleton.getConfig();
-    const categoryConfig = config.planilha.categorias[type];
 
     try {
-      if (!categoryConfig) {
-        res.status(500).json({ error: `Categoria não encontrada` });
-        return;
-      }
-
+      const categoryConfig = SpreadsheetHelper.getCategoryConfig(type, config);
       const aba = pageName || SpreadsheetHelper.getMonthTabName();
       const campos = Object.values(categoryConfig.colunas.campos);
       const primeiraColuna = campos[0];
       const ultimaColuna = campos.slice(-1)[0];
 
-      const range = await SpreadsheetHelper.getRange(
+      const range = await SheetsService.getRange(
         config.planilha.id,
         aba,
         categoryConfig.colunas,
         primeiraColuna,
         ultimaColuna
       );
+
+      console.log(range);
 
       const values = Object.values(data);
 
@@ -73,14 +68,8 @@ export class SheetsController {
     const { pageName, type, searchValue, ...updateFields } = req.body;
 
     const config = ConfigSingleton.getConfig();
-    const categoryConfig = config.planilha.categorias[type];
-
     try {
-      if (!categoryConfig) {
-        res.status(500).json({ error: `Categoria não encontrada` });
-        return;
-      }
-
+      const categoryConfig = SpreadsheetHelper.getCategoryConfig(type, config);
       const aba = pageName || SpreadsheetHelper.getMonthTabName();
 
       const rows = await SheetsService.getSpreadsheetData(

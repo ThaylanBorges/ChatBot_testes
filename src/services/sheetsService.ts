@@ -10,24 +10,57 @@ export class SheetsService {
 
     const { inicio, fim, campos } = columns;
 
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: `${page}!${inicio}:${fim}`,
-    });
-
-    const values = response.data.values ?? [];
-
-    return response.data.values!.map((row: any) => {
-      const result: any = {};
-
-      Object.keys(campos).forEach((key, index) => {
-        let value = row[index];
-
-        result[key] = value;
+    try {
+      const response = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${page}!${inicio}:${fim}`,
       });
 
-      return result;
-    });
+      if (!response.data.values || response.data.values.length === 0) {
+        throw { status: 400, message: "Categoria sem dados." };
+      }
+
+      const data = response.data.values.map((row: any) => {
+        const result: any = {};
+
+        Object.keys(campos).forEach((key, index) => {
+          let value = row[index];
+
+          result[key] = value;
+        });
+
+        return result;
+      });
+
+      console.log(data);
+
+      return data;
+    } catch (error: any) {
+      if (error.message.includes("Unable to parse range")) {
+        throw {
+          status: 404,
+          message: `A aba "${page}" não foi encontrada na planilha.`,
+        };
+      }
+      throw error;
+    }
+  }
+
+  static async addDataSheets(spreadsheetId: string, values: any, range: any) {
+    const sheets = AuthSingleton.getSheetsClient();
+
+    const request = {
+      spreadsheetId,
+      range,
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values: [values],
+      },
+    };
+
+    const response = await sheets.spreadsheets.values.append(request);
+
+    return response.data;
   }
 
   static async batchUpdateCells(
@@ -48,20 +81,34 @@ export class SheetsService {
     return response.data;
   }
 
-  static async addDataSheets(spreadsheetId: string, values: any, range: any) {
+  static async getRange(
+    spreadsheetId: string,
+    page: string,
+    columns: any,
+    firstColumn: any,
+    lastColumn: any
+  ) {
     const sheets = AuthSingleton.getSheetsClient();
 
-    const request = {
-      spreadsheetId,
-      range,
-      valueInputOption: "USER_ENTERED",
-      requestBody: {
-        values: [values],
-      },
-    };
+    try {
+      const response = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${page}!${columns.inicio}:${columns.fim}`,
+      });
 
-    const response = await sheets.spreadsheets.values.append(request);
+      const match = columns.inicio.match(/\d+/);
+      const row = response.data.values || [];
+      const lastRow = row.length + parseInt(match[0]);
 
-    return response.data;
+      return `${page}!${firstColumn}${lastRow}:${lastColumn}${lastRow}`;
+    } catch (error: any) {
+      if (error.message.includes("Unable to parse range")) {
+        throw {
+          status: 404,
+          message: `A aba "${page}" não foi encontrada na planilha.`,
+        };
+      }
+      throw error;
+    }
   }
 }
