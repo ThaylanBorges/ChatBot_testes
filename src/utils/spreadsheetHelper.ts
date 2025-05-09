@@ -37,9 +37,8 @@ export class SpreadsheetHelper {
 
   static getCategoryConfig(type: string, config: any) {
     const category = config.planilha.categorias[type];
-    if (!category) console.log(type);
-
-    throw { status: 400, message: `Categoria "${type}" não encontrada` };
+    if (!category)
+      throw { status: 400, message: `Categoria "${type}" não encontrada` };
     return category;
   }
 }

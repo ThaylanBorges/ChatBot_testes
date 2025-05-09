@@ -8,15 +8,15 @@ export class SheetsController {
     const type = req.query.type;
     const pageName = req.params.pageName;
 
-    if (!type || typeof type !== "string") {
-      res.status(400).json({ error: "Tipo inválido." });
-      return;
-    }
-
-    const config = ConfigSingleton.getConfig();
-    const categoryConfig = SpreadsheetHelper.getCategoryConfig(type, config);
-
     try {
+      if (!type || typeof type !== "string") {
+        res.status(400).json({ error: "Tipo inválido." });
+        return;
+      }
+
+      const config = ConfigSingleton.getConfig();
+      const categoryConfig = SpreadsheetHelper.getCategoryConfig(type, config);
+
       const data = await SheetsService.getSpreadsheetData(
         config.planilha.id,
         pageName,
@@ -33,9 +33,9 @@ export class SheetsController {
 
   static async addRow(req: Request, res: Response) {
     const { pageName, type, ...data } = req.body;
-    const config = ConfigSingleton.getConfig();
 
     try {
+      const config = ConfigSingleton.getConfig();
       const categoryConfig = SpreadsheetHelper.getCategoryConfig(type, config);
       const aba = pageName || SpreadsheetHelper.getMonthTabName();
       const campos = Object.values(categoryConfig.colunas.campos);
@@ -49,8 +49,6 @@ export class SheetsController {
         primeiraColuna,
         ultimaColuna
       );
-
-      console.log(range);
 
       const values = Object.values(data);
 
@@ -67,8 +65,8 @@ export class SheetsController {
   static async updateRow(req: Request, res: Response) {
     const { pageName, type, searchValue, ...updateFields } = req.body;
 
-    const config = ConfigSingleton.getConfig();
     try {
+      const config = ConfigSingleton.getConfig();
       const categoryConfig = SpreadsheetHelper.getCategoryConfig(type, config);
       const aba = pageName || SpreadsheetHelper.getMonthTabName();
 

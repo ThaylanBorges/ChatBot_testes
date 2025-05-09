@@ -32,8 +32,6 @@ export class SheetsService {
         return result;
       });
 
-      console.log(data);
-
       return data;
     } catch (error: any) {
       if (error.message.includes("Unable to parse range")) {
